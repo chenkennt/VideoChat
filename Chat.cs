@@ -37,5 +37,10 @@ namespace Microsoft.Azure.SignalR.VideoChat
         {
             return Clients.User(id).SendAsync("clientCandidate", Context.UserIdentifier, candidate);
         }
+
+        public Task ClientHangup(string id)
+        {
+            return Clients.User(id).SendAsync("clientHangup", Context.UserIdentifier);
+        }
     }
 }

@@ -12,7 +12,7 @@
       <div>User List</div>
       <div v-for="u in users">{{ u.name }}
         <button v-if="!remote" v-on:click="call(u.id)">Call</button>
-        <button v-if="remote === u.id" v-on:click="endCall()">End</button>
+        <button v-if="remote === u.id" v-on:click="hangup()">End</button>
       </div>
     </div>
     <video id="selfview" muted></video>
@@ -42,7 +42,7 @@
       window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
 
       var peer = new window.RTCPeerConnection();
-      var onStream, onCall, sendRequest, sendCandidate, sendAnswer;
+      var onStream, onCall, onHangup, sendRequest, sendCandidate, sendAnswer;
       var sendCandidateQueue = [];
       peer.onicecandidate = evt => {
         if (evt.candidate) {
@@ -63,7 +63,7 @@
         });
       };
 
-      var endCall = () => {
+      var hangup = () => {
         callStatus = remoteId = remoteDesc = null;
         peer.close();
       }
@@ -74,6 +74,11 @@
         remoteDesc = desc;
         onCall(id);
       };
+
+      var receiveHangup = id => {
+        hangup();
+        onHangup();
+      }
 
       var answer = stream => {
         callStatus = "connected";
@@ -106,16 +111,19 @@
       var p = {
         call: call,
         answer: answer,
-        endCall: endCall,
+        hangup: hangup,
         remoteId: () => remoteId,
         onStream: cb => { onStream = cb; return p; },
         onCall: cb => { onCall = cb; return p; },
+        onHangup: cb => { onHangup = cb; return p; },
         onSendRequest: cb => { sendRequest = cb; return p; },
         onSendCandidate: cb => { sendCandidate = cb; return p; },
         onSendAnswer: cb => { sendAnswer = cb; return p; },
+        onSendHangup: cb => { sendHangup = cb; return p; },
         onReceiveRequest: receiveRequest,
         onReceiveCandidate: receiveCandidate,
-        onReceiveAnswer: receiveAnswer
+        onReceiveAnswer: receiveAnswer,
+        onReceiveHangup: receiveHangup
       };
 
       return p;
@@ -128,10 +136,12 @@
     // setup signaling events
     peer.onSendRequest((id, desc) => connection.send('clientRequest', id, desc))
         .onSendCandidate((id, candidate) => connection.send('clientCandidate', id, candidate))
-        .onSendAnswer((id, desc) => connection.send('clientAnswer', id, desc));
+        .onSendAnswer((id, desc) => connection.send('clientAnswer', id, desc))
+        .onSendHangup(id => connection.send('clientHangup', id));
     connection.on('clientRequest', (id, desc) => peer.onReceiveRequest(id, desc));
     connection.on('clientAnswer', (id, desc) => peer.onReceiveAnswer(id, desc));
     connection.on('clientCandidate', (id, candidate) => peer.onReceiveCandidate(id, candidate));
+    connection.on('clientHangup', id => peer.onReceiveHangup(id));
 
     // setup callbacks
     peer.onCall(id => getCamera().then(stream => {
@@ -140,6 +150,13 @@
       peer.answer(stream);
       appData.remote = id;
     })).onStream(setRemoteview);
+
+    peer.onHangup(() => {
+      for (var track of localStream.getTracks()) {
+        track.stop();
+      }
+      appData.remote = null;
+    });
 
     // setup call handler
     function call(id) {
@@ -151,8 +168,8 @@
       }).catch(error => console.log(`error occurred ${error}`));
     }
 
-    function endCall() {
-      peer.endCall();
+    function hangup() {
+      peer.hangup();
       for (var track of localStream.getTracks()) {
         track.stop();
       }
