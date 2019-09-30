@@ -1,0 +1,185 @@
+<html>
+
+<head>
+</head>
+
+<body>
+  <div id="app">
+    <div>
+      <a href="/signin">Sign In</a>
+    </div>
+    <div>
+      <div>User List</div>
+      <div v-for="u in users">{{ u.name }}
+        <button v-if="!remote" v-on:click="call(u.id)">Call</button>
+        <button v-if="remote === u.id" v-on:click="endCall()">End</button>
+      </div>
+    </div>
+    <video id="selfview" muted></video>
+    <video id="remoteview"></video>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
+  <script>
+    var getCamera = () => navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    function setSelfview(stream) {
+      var selfview = document.querySelector('#selfview');
+      selfview.srcObject = stream;
+      selfview.play();
+    }
+    function setRemoteview(stream) {
+      var remoteview = document.querySelector('#remoteview');
+      remoteview.srcObject = stream;
+      remoteview.play();
+    }
+
+    function Peer() {
+      var callStatus;
+      var remoteId;
+      var remoteDesc;
+      window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate || window.msRTCIceCandidate;
+      window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection;
+      window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
+
+      var peer = new window.RTCPeerConnection();
+      var onStream, onCall, sendRequest, sendCandidate, sendAnswer;
+      var sendCandidateQueue = [];
+      peer.onicecandidate = evt => {
+        if (evt.candidate) {
+          if (callStatus === "connected") sendCandidate(remoteId, evt.candidate);
+          else sendCandidateQueue.push(evt.candidate);
+        }
+      };
+      peer.onaddstream = evt => onStream(evt.stream);
+
+      var call = (id, stream) => {
+        if (remoteId) return false;
+        remoteId = id;
+        callStatus = "connecting";
+        peer.addStream(stream);
+        peer.createOffer().then(desc => {
+          peer.setLocalDescription(new RTCSessionDescription(desc));
+          sendRequest(id, desc);
+        });
+      };
+
+      var endCall = () => {
+        callStatus = remoteId = remoteDesc = null;
+        peer.close();
+      }
+
+      var receiveRequest = (id, desc) => {
+        remoteId = id;
+        callStatus = "connecting";
+        remoteDesc = desc;
+        onCall(id);
+      };
+
+      var answer = stream => {
+        callStatus = "connected";
+        peer.addStream(stream);
+        var sessionDesc = new RTCSessionDescription(remoteDesc);
+        peer.setRemoteDescription(sessionDesc);
+        peer.createAnswer().then(function (desc) {
+          peer.setLocalDescription(new RTCSessionDescription(desc));
+          sendAnswer(remoteId, desc);
+        });
+      };
+
+      var queue = [];
+      var receiveCandidate = (id, candidate) => {
+        if (!peer.remoteDescription || !peer.remoteDescription.type) queue.push(candidate);
+        else {
+          queue.forEach(c => peer.addIceCandidate(new RTCIceCandidate(c)));
+          queue = [];
+          peer.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+      };
+
+      var receiveAnswer = (id, desc) => {
+        callStatus = "connected";
+        peer.setRemoteDescription(new RTCSessionDescription(desc));
+        sendCandidateQueue.forEach(c => sendCandidate(remoteId, c));
+        sendCandidateQueue = [];
+      }
+
+      var p = {
+        call: call,
+        answer: answer,
+        endCall: endCall,
+        remoteId: () => remoteId,
+        onStream: cb => { onStream = cb; return p; },
+        onCall: cb => { onCall = cb; return p; },
+        onSendRequest: cb => { sendRequest = cb; return p; },
+        onSendCandidate: cb => { sendCandidate = cb; return p; },
+        onSendAnswer: cb => { sendAnswer = cb; return p; },
+        onReceiveRequest: receiveRequest,
+        onReceiveCandidate: receiveCandidate,
+        onReceiveAnswer: receiveAnswer
+      };
+
+      return p;
+    }
+
+    var peer = Peer();
+    var connection = new signalR.HubConnectionBuilder().withUrl('/chat').build();
+    var localStream;
+
+    // setup signaling events
+    peer.onSendRequest((id, desc) => connection.send('clientRequest', id, desc))
+        .onSendCandidate((id, candidate) => connection.send('clientCandidate', id, candidate))
+        .onSendAnswer((id, desc) => connection.send('clientAnswer', id, desc));
+    connection.on('clientRequest', (id, desc) => peer.onReceiveRequest(id, desc));
+    connection.on('clientAnswer', (id, desc) => peer.onReceiveAnswer(id, desc));
+    connection.on('clientCandidate', (id, candidate) => peer.onReceiveCandidate(id, candidate));
+
+    // setup callbacks
+    peer.onCall(id => getCamera().then(stream => {
+      localStream = stream;
+      setSelfview(stream);
+      peer.answer(stream);
+      appData.remote = id;
+    })).onStream(setRemoteview);
+
+    // setup call handler
+    function call(id) {
+      appData.remote = id;
+      getCamera().then(stream => {
+        localStream = stream;
+        setSelfview(stream);
+        peer.call(id, stream);
+      }).catch(error => console.log(`error occurred ${error}`));
+    }
+
+    function endCall() {
+      peer.endCall();
+      for (var track of localStream.getTracks()) {
+        track.stop();
+      }
+      appData.remote = null;
+    }
+
+    connection.on('connected', (id, name) => {
+      appData.users.push({ id: id, name: name });
+    });
+    connection.on('disconnected', id => {
+      appData.users = appData.users.filter(u => u.id === id);
+    });
+    connection.on('userList', users => {
+      appData.users = users;
+    });
+    connection.start();
+
+    var appData = {
+      users: [],
+      remote: null
+    };
+
+    var app = new Vue({
+      el: '#app',
+      data: appData
+    });
+  </script>
+</body>
+
+</html>
