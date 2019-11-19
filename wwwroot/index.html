@@ -1,202 +1,690 @@
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css">
+
+  <style>
+    .avatar {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    #wrapper {
+      margin-top: 4rem;
+    }
+
+    #sidebar-wrapper {
+      min-height: calc(100vh - 4rem);
+      margin-left: -15rem;
+      -webkit-transition: margin .25s ease-out;
+      -moz-transition: margin .25s ease-out;
+      -o-transition: margin .25s ease-out;
+      transition: margin .25s ease-out;
+    }
+
+    #sidebar-wrapper .sidebar-heading {
+      padding: 0.875rem 1.25rem;
+      font-size: 1.2rem;
+    }
+
+    #sidebar-wrapper .list-group {
+      width: 15rem;
+    }
+
+    #page-content-wrapper {
+      min-width: 100vw;
+      position: relative;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+      margin-left: 0;
+    }
+
+    @media (min-width: 768px) {
+      #sidebar-wrapper {
+        margin-left: 0;
+      }
+
+      #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+      }
+
+      #wrapper.toggled #sidebar-wrapper {
+        margin-left: -15rem;
+      }
+    }
+
+    .online::after {
+      content: "\2713";
+      display: inline-block;
+      position: absolute;
+      left: 1.2rem;
+      top: 1.2rem;
+      width: 0.8rem;
+      height: 0.8rem;
+      font-size: 0.55rem;
+      color: white;
+      background-color: rgb(80, 180, 80);
+      border-radius: 50%;
+      text-align: center;
+    }
+
+    .offline::after {
+      content: "\2715";
+      display: inline-block;
+      position: absolute;
+      left: 1.2rem;
+      top: 1.2rem;
+      width: 0.8rem;
+      height: 0.8rem;
+      font-size: 0.55rem;
+      color: rgb(128, 128, 128);
+      background-color: white;
+      border: 1px solid rgb(128, 128, 128);
+      border-radius: 50%;
+      text-align: center;
+      line-height: 0.65rem;
+    }
+
+    #message-log {
+      padding-top: 1rem;
+      min-height: calc(100vh - 11.5rem - 1px);
+      height: calc(100vh - 11.5rem - 1px);
+      overflow-y: auto;
+      background: rgb(240, 240, 240);
+    }
+
+    footer nav {
+      height: 3.5rem;
+    }
+
+    .message {
+      display: inline-block;
+      padding: 0.5rem 0.8rem 0.5rem 0.8rem;
+      border-radius: 0.3rem;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+    }
+
+    .message-incoming {
+      background: white;
+    }
+
+    .message-outgoing {
+      background: lightblue;
+    }
+
+    .message-entry {
+      padding-bottom: 0.5rem;
+      flex-wrap: nowrap;
+    }
+
+    picture {
+      display: inline-block;
+      position: relative;
+    }
+
+    .timestamp {
+      color: grey;
+      font-size: 0.8rem;
+    }
+
+    .navbar-light .navbar-text {
+      color: black;
+    }
+
+    .fa-rotate-135 {
+      -webkit-transform: rotate(135deg);
+      -moz-transform: rotate(135deg);
+      -ms-transform: rotate(135deg);
+      -o-transform: rotate(135deg);
+      transform: rotate(135deg);
+    }
+
+    #call-window {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgb(64, 64, 64);
+      z-index: 1000;
+    }
+
+    #remote-view {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #self-view {
+      position: absolute;
+      left: calc(80% - 2vh);
+      top: 78%;
+      width: 20%;
+      height: 20%;
+    }
+
+    #avatar-large {
+      position: absolute;
+      left: calc((100% - 30vh) / 2);
+      top: calc((100% - 30vh) / 2);
+      height: 30vh;
+      width: 30vh;
+      border-radius: 50%;
+      box-shadow: 0 0 1rem black;
+    }
+
+    #call-text {
+      position: absolute;
+      left: 0;
+      top: 70%;
+      width: 100%;
+      font-size: 4vh;
+      color: white;
+      text-align: center;
+      text-shadow: 0 0 0.5rem black;
+    }
+
+    #hangup-button {
+      position: absolute;
+      left: calc((100% - 8vh) / 2);
+      top: 80%;
+      width: 8vh;
+      height: 8vh;
+      font-size: 3vh;
+      box-shadow: 0 0 1rem black;
+      z-index: 2000;
+    }
+
+    #answer-button {
+      position: absolute;
+      left: calc((100% - 8vh) / 2 - 10vh);
+      top: 80%;
+      width: 8vh;
+      height: 8vh;
+      font-size: 3vh;
+      box-shadow: 0 0 1rem black;
+    }
+
+    #decline-button {
+      position: absolute;
+      left: calc((100% - 8vh) / 2 + 10vh);
+      top: 80%;
+      width: 8vh;
+      height: 8vh;
+      font-size: 3vh;
+      box-shadow: 0 0 1rem black;
+    }
+  </style>
+
+  <title>SignalR Chat Sample</title>
 </head>
 
 <body>
   <div id="app">
+    <nav class="topnav navbar fixed-top navbar-expand navbar-dark bg-dark">
+      <span class="navbar-brand">SignalR Chat Sample</span>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false">
+              <picture class="online">
+                <img class="avatar" :src="avatar">
+              </picture>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+              <span class="dropdown-item">{{ name }}</span>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="/signout">Sign out</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
     <div>
-      <a href="/signin">Sign In</a>
-    </div>
-    <div>
-      <div>User List</div>
-      <div v-for="u in users">{{ u.name }}
-        <button v-if="!remote" v-on:click="call(u.id)">Call</button>
-        <button v-if="remote === u.id" v-on:click="hangup()">End</button>
+      <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-light border-right" id="sidebar-wrapper">
+          <div class="sidebar-heading">Friends</div>
+          <div class="list-group list-group-flush" v-for="u in userList">
+            <a href="#"
+              :class="{ 'list-group-item': true, 'list-group-item-action': true, 'list-group-item-dark': current && users[u].id === current.id ? true : false }"
+              v-on:click.prevent="changeCurrent(users[u])">
+              <picture :class="users[u].online ? 'online' : 'offline'">
+                <img class="avatar" :src="users[u].avatar">
+              </picture>
+              {{ users[u].name }}
+              <span v-if="users[u].unread" class="badge badge-danger">{{ users[u].unread }}</span>
+            </a>
+          </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+
+          <nav class="navbar navbar-expand navbar-light bg-light border-bottom">
+            <span class="navbar-brand">
+              <button class="btn btn-outline-dark" id="menu-toggle"><i class="fas fa-list"></i></button>
+            </span>
+            <div v-if="current" class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="navbar-nav mr-auto">
+                <li>
+                  <span v-if="current" class="navbar-text">
+                    <picture :class="current.online ? 'online' : 'offline'">
+                      <img class="avatar" :src="current.avatar">
+                    </picture>
+                    {{ current.name }}
+                  </span>
+                </li>
+              </ul>
+              <button class="btn btn-success" v-if="callTarget !== current.id" v-on:click="call(current.id)">
+                <i class="fas fa-phone-alt"></i>
+              </button>
+            </div>
+          </nav>
+
+          <div id="message-log" class="container-fluid" v-if="current">
+            <div class="row" v-for="m in current.messages">
+              <div class="col-12">
+                <div
+                  :class="{ 'message-entry': true, 'd-flex': true, 'flex-nowrap': true, 'float-right': !m.incoming }">
+                  <picture v-if="m.incoming" :class="current.online ? 'online' : 'offline'">
+                    <img class="avatar" :src="current.avatar">
+                  </picture>
+                  <div :class="{ message: true, 'message-incoming': m.incoming, 'message-outgoing': !m.incoming }">
+                    <div class="timestamp">
+                      {{ m.time }}
+                    </div>
+                    <div>
+                      {{ m.content }}
+                    </div>
+                  </div>
+                  <picture v-if="!m.incoming" :class="current.online ? 'online' : 'offline'">
+                    <img class="avatar" :src="avatar">
+                  </picture>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="call-window" :class="{ 'd-none': callTarget === null }">
+            <div v-if="callStatus === 'calling'">
+              <img id="avatar-large" :src="users[callTarget].avatar">
+              <div id="call-text">
+                Calling {{ users[callTarget].name }} ...
+              </div>
+            </div>
+            <div v-if="callStatus === 'incoming'">
+              <img id="avatar-large" :src="users[callTarget].avatar">
+              <div id="call-text">
+                {{ users[callTarget].name }} is calling you ...
+              </div>
+              <button id="answer-button" class="btn btn-success" v-on:click="answer()">
+                <i class="fas fa-phone-alt"></i>
+              </button>
+              <button id="decline-button" class="btn btn-danger" v-on:click="decline()">
+                <i class="fas fa-phone-alt fa-rotate-135"></i>
+              </button>
+            </div>
+            <button id="hangup-button" class="btn btn-danger" v-if="callStatus === 'calling' || callStatus === 'connected'" v-on:click="hangup()">
+              <i class="fas fa-phone-alt fa-rotate-135"></i>
+            </button>
+            <video id="remote-view" :class="{ 'd-none': callStatus !== 'connected' }"></video>
+            <video id="self-view" :class="{ 'd-none': callStatus !== 'connected' && callStatus !== 'calling' }" muted></video>
+          </div>
+          <footer v-if="current">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-top">
+              <div class="input-group">
+                <input class="form-control" type="text" placeholder="Type a new message" v-model="current.draft"
+                  v-on:keypress.enter="sendMessage">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-success" v-bind:disabled="!current.draft" v-on:click="sendMessage">
+                    <i class="fas fa-arrow-right"></i>
+                  </button>
+                </div>
+              </div>
+            </nav>
+          </footer>
+        </div>
+        <!-- /#page-content-wrapper -->
       </div>
     </div>
-    <video id="selfview" muted></video>
-    <video id="remoteview"></video>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
-  <script>
-    var getCamera = () => navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    function setSelfview(stream) {
-      var selfview = document.querySelector('#selfview');
-      selfview.srcObject = stream;
-      selfview.play();
-    }
-    function setRemoteview(stream) {
-      var remoteview = document.querySelector('#remoteview');
-      remoteview.srcObject = stream;
-      remoteview.play();
-    }
 
-    function Peer() {
-      var callStatus;
-      var remoteId;
-      var remoteDesc;
-      window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate || window.msRTCIceCandidate;
-      window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection;
-      window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
-
-      var peer = new window.RTCPeerConnection();
-      var onStream, onCall, onHangup, sendRequest, sendCandidate, sendAnswer;
-      var sendCandidateQueue = [];
-      peer.onicecandidate = evt => {
-        if (evt.candidate) {
-          if (callStatus === "connected") sendCandidate(remoteId, evt.candidate);
-          else sendCandidateQueue.push(evt.candidate);
-        }
-      };
-      peer.onaddstream = evt => onStream(evt.stream);
-
-      var call = (id, stream) => {
-        if (remoteId) return false;
-        remoteId = id;
-        callStatus = "connecting";
-        peer.addStream(stream);
-        peer.createOffer().then(desc => {
-          peer.setLocalDescription(new RTCSessionDescription(desc));
-          sendRequest(id, desc);
-        });
-      };
-
-      var hangup = () => {
-        callStatus = remoteId = remoteDesc = null;
-        peer.close();
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@aspnet/signalr@1.0.0/dist/browser/signalr.min.js"></script>
+    <script>
+      var getCamera = () => navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      function setSelfView(stream) {
+        var selfView = document.querySelector('#self-view');
+        selfView.srcObject = stream;
+        selfView.play();
+      }
+      function setRemoteView(stream) {
+        var remoteView = document.querySelector('#remote-view');
+        remoteView.srcObject = stream;
+        remoteView.play();
       }
 
-      var receiveRequest = (id, desc) => {
-        remoteId = id;
-        callStatus = "connecting";
-        remoteDesc = desc;
-        onCall(id);
-      };
+      function Peer() {
+        var callStatus;
+        var remoteId;
+        var remoteDesc;
+        window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate || window.msRTCIceCandidate;
+        window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection;
+        window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
 
-      var receiveHangup = id => {
-        hangup();
-        onHangup();
+        var peer;
+        var onStream, onCall, onAnswer, onHangup, sendRequest, sendCandidate, sendAnswer, sendHangup, sendDecline;
+        var sendCandidateQueue = [];
+        var preparePeer = () => {
+          var peer = new window.RTCPeerConnection();
+          peer.onicecandidate = evt => {
+            if (evt.candidate) {
+              if (callStatus === "connected") sendCandidate(remoteId, evt.candidate);
+              else sendCandidateQueue.push(evt.candidate);
+            }
+          };
+          peer.onaddstream = evt => onStream(evt.stream);
+          return peer;
+        };
+
+        var hangupInternal = () => {
+          callStatus = remoteId = remoteDesc = null;
+          if (peer) peer.close();
+          peer = null;
+        };
+
+        var call = (id, stream) => {
+          if (remoteId) return false;
+          remoteId = id;
+          peer = preparePeer();
+          callStatus = "connecting";
+          peer.addStream(stream);
+          peer.createOffer().then(desc => {
+            peer.setLocalDescription(new RTCSessionDescription(desc));
+            sendRequest(id, desc);
+          });
+        };
+
+        var answer = stream => {
+          callStatus = "connected";
+          peer = preparePeer();
+          peer.addStream(stream);
+          var sessionDesc = new RTCSessionDescription(remoteDesc);
+          peer.setRemoteDescription(sessionDesc);
+          peer.createAnswer().then(function (desc) {
+            peer.setLocalDescription(new RTCSessionDescription(desc));
+            sendAnswer(remoteId, desc);
+          });
+        };
+
+        var decline = () => {
+          sendDecline(remoteId);
+          hangupInternal();
+        };
+
+
+        var hangup = () => {
+          sendHangup(remoteId);
+          hangupInternal();
+        };
+
+        var receiveRequest = (id, desc) => {
+          remoteId = id;
+          callStatus = "connecting";
+          remoteDesc = desc;
+          onCall(id);
+        };
+
+        var receiveAnswer = (id, desc) => {
+          callStatus = "connected";
+          peer.setRemoteDescription(new RTCSessionDescription(desc));
+          sendCandidateQueue.forEach(c => sendCandidate(remoteId, c));
+          sendCandidateQueue = [];
+          onAnswer();
+        };
+
+        var receiveDecline = (id) => {
+          hangupInternal();
+          onDecline();
+        };
+
+        var receiveHangup = id => {
+          hangupInternal();
+          onHangup();
+        };
+
+        var queue = [];
+        var receiveCandidate = (id, candidate) => {
+          if (!peer.remoteDescription || !peer.remoteDescription.type) queue.push(candidate);
+          else {
+            queue.forEach(c => peer.addIceCandidate(new RTCIceCandidate(c)));
+            queue = [];
+            peer.addIceCandidate(new RTCIceCandidate(candidate));
+          }
+        };
+
+        var p = {
+          call: call,
+          answer: answer,
+          decline: decline,
+          hangup: hangup,
+          onStream: cb => { onStream = cb; return p; },
+          onCall: cb => { onCall = cb; return p; },
+          onHangup: cb => { onHangup = cb; return p; },
+          onAnswer: cb => { onAnswer = cb; return p; },
+          onDecline: cb => { onDecline = cb; return p; },
+          // for signaling
+          onSendRequest: cb => { sendRequest = cb; return p; },
+          onSendCandidate: cb => { sendCandidate = cb; return p; },
+          onSendAnswer: cb => { sendAnswer = cb; return p; },
+          onSendHangup: cb => { sendHangup = cb; return p; },
+          onSendDecline: cb => { sendDecline = cb; return p; },
+          onReceiveRequest: receiveRequest,
+          onReceiveCandidate: receiveCandidate,
+          onReceiveAnswer: receiveAnswer,
+          onReceiveHangup: receiveHangup,
+          onReceiveDecline: receiveDecline,
+        };
+
+        return p;
       }
 
-      var answer = stream => {
-        callStatus = "connected";
-        peer.addStream(stream);
-        var sessionDesc = new RTCSessionDescription(remoteDesc);
-        peer.setRemoteDescription(sessionDesc);
-        peer.createAnswer().then(function (desc) {
-          peer.setLocalDescription(new RTCSessionDescription(desc));
-          sendAnswer(remoteId, desc);
-        });
-      };
+      var peer = Peer();
+      var connection = new signalR.HubConnectionBuilder().withUrl('/chat').build();
+      var localStream;
 
-      var queue = [];
-      var receiveCandidate = (id, candidate) => {
-        if (!peer.remoteDescription || !peer.remoteDescription.type) queue.push(candidate);
-        else {
-          queue.forEach(c => peer.addIceCandidate(new RTCIceCandidate(c)));
-          queue = [];
-          peer.addIceCandidate(new RTCIceCandidate(candidate));
-        }
-      };
-
-      var receiveAnswer = (id, desc) => {
-        callStatus = "connected";
-        peer.setRemoteDescription(new RTCSessionDescription(desc));
-        sendCandidateQueue.forEach(c => sendCandidate(remoteId, c));
-        sendCandidateQueue = [];
-      }
-
-      var p = {
-        call: call,
-        answer: answer,
-        hangup: hangup,
-        remoteId: () => remoteId,
-        onStream: cb => { onStream = cb; return p; },
-        onCall: cb => { onCall = cb; return p; },
-        onHangup: cb => { onHangup = cb; return p; },
-        onSendRequest: cb => { sendRequest = cb; return p; },
-        onSendCandidate: cb => { sendCandidate = cb; return p; },
-        onSendAnswer: cb => { sendAnswer = cb; return p; },
-        onSendHangup: cb => { sendHangup = cb; return p; },
-        onReceiveRequest: receiveRequest,
-        onReceiveCandidate: receiveCandidate,
-        onReceiveAnswer: receiveAnswer,
-        onReceiveHangup: receiveHangup
-      };
-
-      return p;
-    }
-
-    var peer = Peer();
-    var connection = new signalR.HubConnectionBuilder().withUrl('/chat').build();
-    var localStream;
-
-    // setup signaling events
-    peer.onSendRequest((id, desc) => connection.send('clientRequest', id, desc))
+      // setup signaling events
+      peer
+        .onSendRequest((id, desc) => connection.send('clientRequest', id, desc))
         .onSendCandidate((id, candidate) => connection.send('clientCandidate', id, candidate))
         .onSendAnswer((id, desc) => connection.send('clientAnswer', id, desc))
+        .onSendDecline(id => connection.send('clientDecline', id))
         .onSendHangup(id => connection.send('clientHangup', id));
-    connection.on('clientRequest', (id, desc) => peer.onReceiveRequest(id, desc));
-    connection.on('clientAnswer', (id, desc) => peer.onReceiveAnswer(id, desc));
-    connection.on('clientCandidate', (id, candidate) => peer.onReceiveCandidate(id, candidate));
-    connection.on('clientHangup', id => peer.onReceiveHangup(id));
+      connection.on('clientRequest', (id, desc) => peer.onReceiveRequest(id, desc));
+      connection.on('clientAnswer', (id, desc) => peer.onReceiveAnswer(id, desc));
+      connection.on('clientCandidate', (id, candidate) => peer.onReceiveCandidate(id, candidate));
+      connection.on('clientDecline', id => peer.onReceiveDecline(id));
+      connection.on('clientHangup', id => peer.onReceiveHangup(id));
 
-    // setup callbacks
-    peer.onCall(id => getCamera().then(stream => {
-      localStream = stream;
-      setSelfview(stream);
-      peer.answer(stream);
-      appData.remote = id;
-    })).onStream(setRemoteview);
+      var appData = {
+        name: null,
+        avatar: null,
+        users: [],
+        userList: [],
+        current: null,
+        callTarget: null,
+        callStatus: null
+      };
 
-    peer.onHangup(() => {
-      for (var track of localStream.getTracks()) {
-        track.stop();
-      }
-      appData.remote = null;
-    });
+      var app = new Vue({
+        el: '#app',
+        data: appData,
+        methods: {
+          getTime: function () {
+            var t = new Date(Date.now());
+            return `${t.getMonth()}/${t.getDate()} ${t.getHours()}:${t.getMinutes().toString().padStart(2, '0')}`;
+          },
+          prepareUser: function (user) {
+            user.online = true;
+            user.messages = [];
+            user.draft = null;
+            user.unread = 0;
+          },
+          sendMessage: function () {
+            if (!this.current.draft) return;
+            connection.send('sendMessage', this.current.id, this.current.draft);
+            this.current.messages.push({
+              time: this.getTime(),
+              incoming: false,
+              content: this.current.draft,
+            });
+            this.current.draft = null;
+          },
+          changeCurrent: function (user) {
+            this.current = user;
+            user.unread = 0;
+          },
+          addIncomingMessage: function (id, message) {
+            this.users[id].messages.push({
+              time: this.getTime(),
+              incoming: true,
+              content: message,
+            });
+            if (this.current.id !== id) this.users[id].unread++;
+          },
+          call: function (id) {
+            if (this.callStatus) return;
+            this.callTarget = id;
+            this.callStatus = 'calling';
+            getCamera().then(stream => {
+              localStream = stream;
+              setSelfView(stream);
+              peer.call(id, stream);
+            }).catch(error => console.log(`error occurred ${error}`));
+          },
+          onCall: function (id) {
+            if (this.callStatus) return;
+            this.callTarget = id;
+            this.callStatus = 'incoming';
+          },
+          answer: function () {
+            if (this.callStatus !== 'incoming') return;
+            this.callStatus = 'connected';
+            getCamera().then(stream => {
+              localStream = stream;
+              setSelfView(stream);
+              peer.answer(stream);
+            });
+          },
+          decline: function () {
+            if (this.callStatus !== 'incoming') return;
+            peer.decline();
+            this.onHangup();
+          },
+          hangup: function () {
+            peer.hangup();
+            this.onHangup();
+          },
+          onAnswer: function () {
+            if (this.callStatus !== 'calling') return;
+            this.callStatus = 'connected';
+          },
+          onDecline: function () {
+            if (this.callStatus !== 'calling') return;
+            this.onHangup();
+          },
+          onHangup: function () {
+            this.callTarget = null;
+            this.callStatus = null;
+            if (localStream)
+              for (var track of localStream.getTracks()) track.stop();
+          },
+          online: function (user) {
+            if (this.users[user.id]) this.users[user.id].online = true;
+            else {
+              this.prepareUser(user);
+              this.users[user.id] = user;
+              this.userList.push(user.id);
+            }
+          },
+          offline: function (id) {
+            this.users[id].online = false;
+          },
+          setUsers: function (users) {
+            var userMap = {};
+            users.forEach(u => {
+              this.prepareUser(u);
+              userMap[u.id] = u;
+            });
+            this.userList = users.map(u => u.id);
+            this.users = userMap;
+          }
+        },
+        mounted() {
+          axios
+            .get('/profile')
+            .then(p => {
+              this.name = p.data.name;
+              this.avatar = p.data.avatar;
+            });
+        },
+        updated() {
+          var log = this.$el.querySelector('#message-log');
+          if (log) log.scrollTop = log.clientHeight;
+        }
+      });
 
-    // setup call handler
-    function call(id) {
-      appData.remote = id;
-      getCamera().then(stream => {
-        localStream = stream;
-        setSelfview(stream);
-        peer.call(id, stream);
-      }).catch(error => console.log(`error occurred ${error}`));
-    }
+      // setup callbacks
+      peer
+        .onCall(app.onCall)
+        .onHangup(app.onHangup)
+        .onAnswer(app.onAnswer)
+        .onDecline(app.onDecline)
+        .onStream(setRemoteView);
 
-    function hangup() {
-      peer.hangup();
-      for (var track of localStream.getTracks()) {
-        track.stop();
-      }
-      appData.remote = null;
-    }
+      connection.on('online', app.online);
+      connection.on('offline', app.offline);
+      connection.on('userList', app.setUsers);
+      connection.on('newMessage', app.addIncomingMessage);
+      connection.start();
 
-    connection.on('connected', (id, name) => {
-      appData.users.push({ id: id, name: name });
-    });
-    connection.on('disconnected', id => {
-      appData.users = appData.users.filter(u => u.id === id);
-    });
-    connection.on('userList', users => {
-      appData.users = users;
-    });
-    connection.start();
-
-    var appData = {
-      users: [],
-      remote: null
-    };
-
-    var app = new Vue({
-      el: '#app',
-      data: appData
-    });
-  </script>
+      $("#menu-toggle").click(function (e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+      });
+    </script>
 </body>
 
 </html>

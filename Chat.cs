@@ -1,26 +1,28 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Linq;
+using static AspNet.Security.OAuth.GitHub.GitHubAuthenticationConstants;
 
 namespace Microsoft.Azure.SignalR.VideoChat
 {
     public class Chat : Hub
     {
-        static ConcurrentDictionary<string, string> users = new ConcurrentDictionary<string, string>();
-
         public override async Task OnConnectedAsync()
         {
-            await Clients.Caller.SendAsync("userList", users.Select(p => new { Id = p.Key, Name = p.Value }));
-            users[Context.UserIdentifier] = Context.User.Identity.Name;
-            await Clients.Others.SendAsync("connected", Context.UserIdentifier, Context.User.Identity.Name);
+            await Clients.Caller.SendAsync("userList", Users.Instance.GetAllUsers());
+            var user = new User(
+                Context.UserIdentifier,
+                Context.User.Claims.FirstOrDefault(c => c.Type == Claims.Name)?.Value ?? Context.User.Identity.Name,
+                Context.User.Claims.FirstOrDefault(c => c.Type == AuthController.AvatarUrlClaim)?.Value);
+            Users.Instance.Add(user);
+            await Clients.Others.SendAsync("online", user);
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            users.TryRemove(Context.UserIdentifier, out _);
-            return Clients.Others.SendAsync("disconnected", Context.User.Identity.Name);
+            Users.Instance.Remove(Context.UserIdentifier);
+            return Clients.Others.SendAsync("offline", Context.UserIdentifier);
         }
 
         public Task ClientRequest(string id, object desc)
@@ -38,9 +40,19 @@ namespace Microsoft.Azure.SignalR.VideoChat
             return Clients.User(id).SendAsync("clientCandidate", Context.UserIdentifier, candidate);
         }
 
+        public Task ClientDecline(string id)
+        {
+            return Clients.User(id).SendAsync("clientDecline", Context.UserIdentifier);
+        }
+
         public Task ClientHangup(string id)
         {
             return Clients.User(id).SendAsync("clientHangup", Context.UserIdentifier);
+        }
+
+        public Task SendMessage(string id, string message)
+        {
+            return Clients.User(id).SendAsync("newMessage", Context.UserIdentifier, message);
         }
     }
 }
