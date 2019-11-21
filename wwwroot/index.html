@@ -37,6 +37,7 @@
     }
 
     #sidebar-wrapper .sidebar-heading {
+      width: 15rem;
       padding: 0.875rem 1.25rem;
       font-size: 1.2rem;
     }
@@ -80,6 +81,21 @@
       font-size: 0.55rem;
       color: white;
       background-color: rgb(80, 180, 80);
+      border-radius: 50%;
+      text-align: center;
+    }
+
+    .busy::after {
+      content: "\A0";
+      display: inline-block;
+      position: absolute;
+      left: 1.2rem;
+      top: 1.2rem;
+      width: 0.8rem;
+      height: 0.8rem;
+      font-size: 0.55rem;
+      color: white;
+      background-color: rgb(224, 0, 0);
       border-radius: 50%;
       text-align: center;
     }
@@ -129,6 +145,13 @@
       background: lightblue;
     }
 
+    .message-system {
+      text-align: center;
+      color: grey;
+      font-size: 0.8rem;
+      padding: 0.5rem;
+    }
+
     .message-entry {
       padding-bottom: 0.5rem;
       flex-wrap: nowrap;
@@ -156,14 +179,78 @@
       transform: rotate(135deg);
     }
 
-    #call-window {
+    #call-ui {
       position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
       background-color: rgb(64, 64, 64);
       z-index: 1000;
+    }
+
+    #top-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      text-align: right;
+      z-index: 2000;
+    }
+
+    .flat-button {
+      background: rgba(0, 0, 0, 0);
+      border-width: 0;
+      color: rgb(160, 160, 160);
+      z-index: 2000;
+    }
+
+    .flat-button:hover {
+      color: rgb(224, 224, 224);
+    }
+
+    .flat-button:focus {
+      outline: none;
+    }
+
+    #avatar-wrapper {
+      position: absolute;
+      width: 100%;
+      top: 25%;
+      height: 35%;
+      text-align: center;
+    }
+
+    #avatar-large {
+      border-radius: 50%;
+      box-shadow: 0 0 1rem black;
+    }
+
+    #call-text {
+      position: absolute;
+      left: 0;
+      top: 60%;
+      width: 100%;
+      height: 15%;
+      color: white;
+      text-align: center;
+      text-shadow: 0 0 0.5rem black;
+    }
+
+    #button-wrapper {
+      position: absolute;
+      left: 0;
+      top: 75%;
+      width: 100%;
+      height: 20%;
+      text-align: center;
+      z-index: 2000;
+    }
+
+    #button-wrapper button {
+      box-shadow: 0 0 1rem black;
+    }
+
+    #button-separator {
+      display: inline-block;
+      width: 10%;
+      height: 100%;
     }
 
     #remote-view {
@@ -182,56 +269,53 @@
       height: 20%;
     }
 
-    #avatar-large {
-      position: absolute;
-      left: calc((100% - 30vh) / 2);
-      top: calc((100% - 30vh) / 2);
+    #call-ui.fullscreen {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #call-ui.fullscreen #avatar-large {
       height: 30vh;
       width: 30vh;
-      border-radius: 50%;
-      box-shadow: 0 0 1rem black;
     }
 
-    #call-text {
-      position: absolute;
-      left: 0;
-      top: 70%;
-      width: 100%;
+    #call-ui.fullscreen #call-text {
       font-size: 4vh;
-      color: white;
-      text-align: center;
-      text-shadow: 0 0 0.5rem black;
     }
 
-    #hangup-button {
-      position: absolute;
-      left: calc((100% - 8vh) / 2);
-      top: 80%;
+    #call-ui.fullscreen button {
       width: 8vh;
       height: 8vh;
       font-size: 3vh;
-      box-shadow: 0 0 1rem black;
-      z-index: 2000;
     }
 
-    #answer-button {
-      position: absolute;
-      left: calc((100% - 8vh) / 2 - 10vh);
-      top: 80%;
-      width: 8vh;
-      height: 8vh;
-      font-size: 3vh;
+    #call-ui.window {
+      left: calc(75% - 2vh);
+      top: calc(73% - 3.5rem);
+      width: 25%;
+      height: 25%;
       box-shadow: 0 0 1rem black;
     }
 
-    #decline-button {
-      position: absolute;
-      left: calc((100% - 8vh) / 2 + 10vh);
-      top: 80%;
-      width: 8vh;
-      height: 8vh;
-      font-size: 3vh;
-      box-shadow: 0 0 1rem black;
+    #call-ui.window #avatar-large {
+      width: 7vh;
+      height: 7vh;
+    }
+
+    #call-ui.window #call-text {
+      font-size: 2vh;
+    }
+
+    #call-ui.window button {
+      width: 4vh;
+      height: 4vh;
+      font-size: 1.5vh;
+    }
+
+    #call-ui.window #self-view {
+      display: none;
     }
   </style>
 
@@ -269,7 +353,7 @@
             <a href="#"
               :class="{ 'list-group-item': true, 'list-group-item-action': true, 'list-group-item-dark': current && users[u].id === current.id ? true : false }"
               v-on:click.prevent="changeCurrent(users[u])">
-              <picture :class="users[u].online ? 'online' : 'offline'">
+              <picture :class="users[u].status">
                 <img class="avatar" :src="users[u].avatar">
               </picture>
               {{ users[u].name }}
@@ -290,7 +374,7 @@
               <ul class="navbar-nav mr-auto">
                 <li>
                   <span v-if="current" class="navbar-text">
-                    <picture :class="current.online ? 'online' : 'offline'">
+                    <picture :class="current.status">
                       <img class="avatar" :src="current.avatar">
                     </picture>
                     {{ current.name }}
@@ -306,9 +390,12 @@
           <div id="message-log" class="container-fluid" v-if="current">
             <div class="row" v-for="m in current.messages">
               <div class="col-12">
-                <div
+                <div v-if="m.system" class="message-system">
+                  {{ m.time }}&nbsp;&nbsp;&nbsp;&nbsp;{{ m.content }}
+                </div>
+                <div v-if="!m.system"
                   :class="{ 'message-entry': true, 'd-flex': true, 'flex-nowrap': true, 'float-right': !m.incoming }">
-                  <picture v-if="m.incoming" :class="current.online ? 'online' : 'offline'">
+                  <picture v-if="m.incoming" :class="current.status">
                     <img class="avatar" :src="current.avatar">
                   </picture>
                   <div :class="{ message: true, 'message-incoming': m.incoming, 'message-outgoing': !m.incoming }">
@@ -319,35 +406,42 @@
                       {{ m.content }}
                     </div>
                   </div>
-                  <picture v-if="!m.incoming" :class="current.online ? 'online' : 'offline'">
+                  <picture v-if="!m.incoming" :class="current.status">
                     <img class="avatar" :src="avatar">
                   </picture>
                 </div>
               </div>
             </div>
           </div>
-          <div id="call-window" :class="{ 'd-none': callTarget === null }">
-            <div v-if="callStatus === 'calling'">
-              <img id="avatar-large" :src="users[callTarget].avatar">
-              <div id="call-text">
-                Calling {{ users[callTarget].name }} ...
-              </div>
+          <div id="call-ui" :class="{ 'd-none': callTarget === null, fullscreen: fullscreenCall, window: !fullscreenCall }">
+            <div id="top-wrapper">
+            <button class="flat-button" v-on:click="fullscreenCall = !fullscreenCall">
+              <i class="fas fa-compress"></i>
+            </button>
+          </div>
+            <div id="avatar-wrapper">
+              <img id="avatar-large" v-if="callStatus === 'incoming' || callStatus ==='calling'"
+                :src="users[callTarget].avatar">
             </div>
-            <div v-if="callStatus === 'incoming'">
-              <img id="avatar-large" :src="users[callTarget].avatar">
-              <div id="call-text">
-                {{ users[callTarget].name }} is calling you ...
-              </div>
-              <button id="answer-button" class="btn btn-success" v-on:click="answer()">
-                <i class="fas fa-phone-alt"></i>
-              </button>
-              <button id="decline-button" class="btn btn-danger" v-on:click="decline()">
+            <div id="call-text">
+              <span v-if="callStatus === 'calling'">Calling {{ users[callTarget].name }} ...</span>
+              <span v-if="callStatus === 'incoming'">{{ users[callTarget].name }} is calling you ...</span>
+            </div>
+            <div id="button-wrapper">
+              <button id="hangup-button" class="btn btn-danger"
+                v-if="callStatus === 'calling' || callStatus === 'connected'" v-on:click="hangup()">
                 <i class="fas fa-phone-alt fa-rotate-135"></i>
               </button>
+              <div v-if="callStatus === 'incoming'">
+                <button id="answer-button" class="btn btn-success" v-on:click="answer()">
+                  <i class="fas fa-phone-alt"></i>
+                </button>
+                <div id="button-separator"></div>
+                <button id="decline-button" class="btn btn-danger" v-on:click="hangup()">
+                  <i class="fas fa-phone-alt fa-rotate-135"></i>
+                </button>
+              </div>
             </div>
-            <button id="hangup-button" class="btn btn-danger" v-if="callStatus === 'calling' || callStatus === 'connected'" v-on:click="hangup()">
-              <i class="fas fa-phone-alt fa-rotate-135"></i>
-            </button>
             <video id="remote-view" :class="{ 'd-none': callStatus !== 'connected' }"></video>
             <video id="self-view" :class="{ 'd-none': callStatus !== 'connected' && callStatus !== 'calling' }" muted></video>
           </div>
@@ -405,7 +499,7 @@
         window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
 
         var peer;
-        var onStream, onCall, onAnswer, onHangup, sendRequest, sendCandidate, sendAnswer, sendHangup, sendDecline;
+        var onStream, onCall, onAnswer, onHangup, sendRequest, sendCandidate, sendAnswer, sendHangup;
         var sendCandidateQueue = [];
         var preparePeer = () => {
           var peer = new window.RTCPeerConnection();
@@ -449,12 +543,6 @@
           });
         };
 
-        var decline = () => {
-          sendDecline(remoteId);
-          hangupInternal();
-        };
-
-
         var hangup = () => {
           sendHangup(remoteId);
           hangupInternal();
@@ -475,11 +563,6 @@
           onAnswer();
         };
 
-        var receiveDecline = (id) => {
-          hangupInternal();
-          onDecline();
-        };
-
         var receiveHangup = id => {
           hangupInternal();
           onHangup();
@@ -498,24 +581,20 @@
         var p = {
           call: call,
           answer: answer,
-          decline: decline,
           hangup: hangup,
           onStream: cb => { onStream = cb; return p; },
           onCall: cb => { onCall = cb; return p; },
           onHangup: cb => { onHangup = cb; return p; },
           onAnswer: cb => { onAnswer = cb; return p; },
-          onDecline: cb => { onDecline = cb; return p; },
           // for signaling
           onSendRequest: cb => { sendRequest = cb; return p; },
           onSendCandidate: cb => { sendCandidate = cb; return p; },
           onSendAnswer: cb => { sendAnswer = cb; return p; },
           onSendHangup: cb => { sendHangup = cb; return p; },
-          onSendDecline: cb => { sendDecline = cb; return p; },
           onReceiveRequest: receiveRequest,
           onReceiveCandidate: receiveCandidate,
           onReceiveAnswer: receiveAnswer,
           onReceiveHangup: receiveHangup,
-          onReceiveDecline: receiveDecline,
         };
 
         return p;
@@ -530,12 +609,10 @@
         .onSendRequest((id, desc) => connection.send('clientRequest', id, desc))
         .onSendCandidate((id, candidate) => connection.send('clientCandidate', id, candidate))
         .onSendAnswer((id, desc) => connection.send('clientAnswer', id, desc))
-        .onSendDecline(id => connection.send('clientDecline', id))
         .onSendHangup(id => connection.send('clientHangup', id));
       connection.on('clientRequest', (id, desc) => peer.onReceiveRequest(id, desc));
       connection.on('clientAnswer', (id, desc) => peer.onReceiveAnswer(id, desc));
       connection.on('clientCandidate', (id, candidate) => peer.onReceiveCandidate(id, candidate));
-      connection.on('clientDecline', id => peer.onReceiveDecline(id));
       connection.on('clientHangup', id => peer.onReceiveHangup(id));
 
       var appData = {
@@ -545,7 +622,8 @@
         userList: [],
         current: null,
         callTarget: null,
-        callStatus: null
+        callStatus: null,
+        fullscreenCall: true
       };
 
       var app = new Vue({
@@ -557,7 +635,6 @@
             return `${t.getMonth()}/${t.getDate()} ${t.getHours()}:${t.getMinutes().toString().padStart(2, '0')}`;
           },
           prepareUser: function (user) {
-            user.online = true;
             user.messages = [];
             user.draft = null;
             user.unread = 0;
@@ -584,10 +661,18 @@
             });
             if (this.current.id !== id) this.users[id].unread++;
           },
+          addSystemMessage: function (id, message) {
+            this.users[id].messages.push({
+              time: this.getTime(),
+              system: true,
+              content: message,
+            });
+          },
           call: function (id) {
             if (this.callStatus) return;
             this.callTarget = id;
             this.callStatus = 'calling';
+            this.fullscreenCall = true;
             getCamera().then(stream => {
               localStream = stream;
               setSelfView(stream);
@@ -596,22 +681,21 @@
           },
           onCall: function (id) {
             if (this.callStatus) return;
+            this.fullscreenCall = false;
             this.callTarget = id;
             this.callStatus = 'incoming';
           },
           answer: function () {
             if (this.callStatus !== 'incoming') return;
             this.callStatus = 'connected';
+            this.fullscreenCall = true;
+            connection.send('changeStatus', 'busy');
+            this.changeCurrent(this.users[this.callTarget]);
             getCamera().then(stream => {
               localStream = stream;
               setSelfView(stream);
               peer.answer(stream);
             });
-          },
-          decline: function () {
-            if (this.callStatus !== 'incoming') return;
-            peer.decline();
-            this.onHangup();
           },
           hangup: function () {
             peer.hangup();
@@ -620,27 +704,30 @@
           onAnswer: function () {
             if (this.callStatus !== 'calling') return;
             this.callStatus = 'connected';
-          },
-          onDecline: function () {
-            if (this.callStatus !== 'calling') return;
-            this.onHangup();
+            connection.send('changeStatus', 'busy');
           },
           onHangup: function () {
+            this.addSystemMessage(this.callTarget, 'Call ended');
             this.callTarget = null;
             this.callStatus = null;
+            connection.send('changeStatus', 'online');
             if (localStream)
               for (var track of localStream.getTracks()) track.stop();
           },
           online: function (user) {
-            if (this.users[user.id]) this.users[user.id].online = true;
+            if (this.users[user.id]) this.users[user.id].status = 'online';
             else {
               this.prepareUser(user);
               this.users[user.id] = user;
               this.userList.push(user.id);
             }
+
+            this.addSystemMessage(user.id, user.name + ' is online');
           },
-          offline: function (id) {
-            this.users[id].online = false;
+          changeStatus: function (id, status) {
+            this.users[id].status = status;
+            if (status === 'offline' && id === this.callTarget) this.hangup();
+            if (status === 'offline') this.addSystemMessage(id, this.users[id].name + ' is ' + status);
           },
           setUsers: function (users) {
             var userMap = {};
@@ -671,11 +758,10 @@
         .onCall(app.onCall)
         .onHangup(app.onHangup)
         .onAnswer(app.onAnswer)
-        .onDecline(app.onDecline)
         .onStream(setRemoteView);
 
       connection.on('online', app.online);
-      connection.on('offline', app.offline);
+      connection.on('changeStatus', app.changeStatus);
       connection.on('userList', app.setUsers);
       connection.on('newMessage', app.addIncomingMessage);
       connection.start();

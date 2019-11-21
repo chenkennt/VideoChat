@@ -11,11 +11,15 @@ namespace Microsoft.Azure.SignalR.VideoChat
 
         public string Avatar { get; private set; }
 
+
+        public string Status { get; set; }
+
         public User(string id, string name, string avatar)
         {
             Id = id;
             Name = name;
             Avatar = avatar;
+            Status = "online";
         }
     }
 
