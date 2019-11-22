@@ -27,14 +27,14 @@ namespace Microsoft.Azure.SignalR.VideoChat
             return Clients.Others.SendAsync("changeStatus", Context.UserIdentifier, "offline");
         }
 
-        public Task ClientRequest(string id, object desc)
+        public Task ClientRequest(string id, bool hasVideo, object desc)
         {
-            return Clients.User(id).SendAsync("clientRequest", Context.UserIdentifier, desc);
+            return Clients.User(id).SendAsync("clientRequest", Context.UserIdentifier, hasVideo, desc);
         }
 
-        public Task ClientAnswer(string id, object desc)
+        public Task ClientAnswer(string id, bool hasVideo, object desc)
         {
-            return Clients.User(id).SendAsync("clientAnswer", Context.UserIdentifier, desc);
+            return Clients.User(id).SendAsync("clientAnswer", Context.UserIdentifier, hasVideo, desc);
         }
 
         public Task ClientCandidate(string id, object candidate)

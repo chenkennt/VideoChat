@@ -1,0 +1,308 @@
+.avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+#wrapper {
+  margin-top: 4rem;
+}
+
+#sidebar-wrapper {
+  min-height: calc(100vh - 4rem);
+  margin-left: -15rem;
+  -webkit-transition: margin 0.25s ease-out;
+  -moz-transition: margin 0.25s ease-out;
+  -o-transition: margin 0.25s ease-out;
+  transition: margin 0.25s ease-out;
+}
+
+#sidebar-wrapper .sidebar-heading {
+  width: 15rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group {
+  width: 15rem;
+}
+
+#page-content-wrapper {
+  min-width: 100vw;
+  position: relative;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+  margin-left: 0;
+}
+
+@media (min-width: 768px) {
+  #sidebar-wrapper {
+    margin-left: 0;
+  }
+
+  #page-content-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #wrapper.toggled #sidebar-wrapper {
+    margin-left: -15rem;
+  }
+}
+
+.online::after {
+  content: "\2713";
+  display: inline-block;
+  position: absolute;
+  left: 1.2rem;
+  top: 1.2rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  font-size: 0.55rem;
+  color: white;
+  background-color: rgb(80, 180, 80);
+  border-radius: 50%;
+  text-align: center;
+}
+
+.busy::after {
+  content: "\A0";
+  display: inline-block;
+  position: absolute;
+  left: 1.2rem;
+  top: 1.2rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  font-size: 0.55rem;
+  color: white;
+  background-color: rgb(224, 0, 0);
+  border-radius: 50%;
+  text-align: center;
+}
+
+.offline::after {
+  content: "\2715";
+  display: inline-block;
+  position: absolute;
+  left: 1.2rem;
+  top: 1.2rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  font-size: 0.55rem;
+  color: rgb(128, 128, 128);
+  background-color: white;
+  border: 1px solid rgb(128, 128, 128);
+  border-radius: 50%;
+  text-align: center;
+  line-height: 0.65rem;
+}
+
+#message-log {
+  padding-top: 1rem;
+  min-height: calc(100vh - 11.5rem - 1px);
+  height: calc(100vh - 11.5rem - 1px);
+  overflow-y: auto;
+  background: rgb(240, 240, 240);
+}
+
+footer nav {
+  height: 3.5rem;
+}
+
+.message {
+  display: inline-block;
+  padding: 0.5rem 0.8rem 0.5rem 0.8rem;
+  border-radius: 0.3rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.message-incoming {
+  background: white;
+}
+
+.message-outgoing {
+  background: lightblue;
+}
+
+.message-system {
+  text-align: center;
+  color: grey;
+  font-size: 0.8rem;
+  padding: 0.5rem;
+}
+
+.message-entry {
+  padding-bottom: 0.5rem;
+  flex-wrap: nowrap;
+}
+
+picture {
+  display: inline-block;
+  position: relative;
+}
+
+.timestamp {
+  color: grey;
+  font-size: 0.8rem;
+}
+
+.navbar-light .navbar-text {
+  color: black;
+}
+
+.fa-rotate-135 {
+  -webkit-transform: rotate(135deg);
+  -moz-transform: rotate(135deg);
+  -ms-transform: rotate(135deg);
+  -o-transform: rotate(135deg);
+  transform: rotate(135deg);
+}
+
+#call-ui {
+  position: absolute;
+  background-color: rgb(64, 64, 64);
+  z-index: 1000;
+}
+
+#top-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: right;
+  z-index: 2000;
+}
+
+.flat-button {
+  background: rgba(0, 0, 0, 0);
+  border-width: 0;
+  color: rgb(160, 160, 160);
+  z-index: 2000;
+}
+
+.flat-button:hover {
+  color: rgb(224, 224, 224);
+}
+
+.flat-button:focus {
+  outline: none;
+}
+
+#avatar-wrapper {
+  position: absolute;
+  width: 100%;
+  top: 25%;
+  height: 35%;
+  text-align: center;
+}
+
+#avatar-large {
+  border-radius: 50%;
+  box-shadow: 0 0 1rem black;
+}
+
+#call-text {
+  position: absolute;
+  left: 0;
+  top: 60%;
+  width: 100%;
+  height: 15%;
+  color: white;
+  text-align: center;
+  text-shadow: 0 0 0.5rem black;
+}
+
+#button-wrapper {
+  position: absolute;
+  left: 0;
+  top: 75%;
+  width: 100%;
+  height: 20%;
+  text-align: center;
+  z-index: 2000;
+}
+
+#button-wrapper button {
+  box-shadow: 0 0 1rem black;
+}
+
+#button-separator {
+  display: inline-block;
+  width: 10%;
+  height: 100%;
+}
+
+#remote-view {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#self-view {
+  position: absolute;
+  left: calc(80% - 2vh);
+  top: 78%;
+  width: 20%;
+  height: 20%;
+}
+
+#call-ui.fullscreen {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#call-ui.fullscreen #avatar-large {
+  height: 30vh;
+  width: 30vh;
+}
+
+#call-ui.fullscreen #call-text {
+  font-size: 4vh;
+}
+
+#call-ui.fullscreen button {
+  width: 8vh;
+  height: 8vh;
+  font-size: 3vh;
+}
+
+#call-ui.window {
+  left: calc(75% - 2vh);
+  top: calc(73% - 3.5rem);
+  width: 25%;
+  height: 25%;
+  box-shadow: 0 0 1rem black;
+}
+
+#call-ui.window #avatar-large {
+  width: 7vh;
+  height: 7vh;
+}
+
+#call-ui.window #call-text {
+  font-size: 2vh;
+}
+
+#call-ui.window button {
+  width: 4vh;
+  height: 4vh;
+  font-size: 1.5vh;
+}
+
+#call-ui.window #self-view {
+  display: none;
+}
+
+.video-fit {
+  object-fit: cover;
+}
