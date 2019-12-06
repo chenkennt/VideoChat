@@ -4,17 +4,21 @@ function Peer() {
   var remoteDesc;
 
   var peer;
+  var iceServers;
   var onStream, onCall, onAnswer, onHangup, sendRequest, sendCandidate, sendAnswer, sendHangup;
   var sendCandidateQueue = [];
   var preparePeer = () => {
-    var peer = new RTCPeerConnection();
+    var peer = new RTCPeerConnection({
+      iceServers: iceServers
+    });
     peer.onicecandidate = evt => {
       if (evt.candidate) {
         if (callStatus === "connected") sendCandidate(remoteId, evt.candidate);
         else sendCandidateQueue.push(evt.candidate);
       }
     };
-    peer.onaddstream = evt => onStream(evt.stream);
+    // peer.onaddstream = evt => onStream(evt.stream);
+    peer.ontrack = evt => onStream(evt.streams[0]);
     return peer;
   };
 
@@ -29,7 +33,8 @@ function Peer() {
     remoteId = id;
     peer = preparePeer();
     callStatus = "connecting";
-    peer.addStream(stream);
+    // peer.addStream(stream);
+    stream.getTracks().forEach(t => peer.addTrack(t, stream));
     peer.createOffer().then(desc => {
       peer.setLocalDescription(new RTCSessionDescription(desc));
       sendRequest(id, video, desc);
@@ -83,6 +88,8 @@ function Peer() {
     }
   };
 
+  var setIceServers = servers => iceServers = servers;
+
   var p = {
     call: call,
     answer: answer,
@@ -100,6 +107,7 @@ function Peer() {
     onReceiveCandidate: receiveCandidate,
     onReceiveAnswer: receiveAnswer,
     onReceiveHangup: receiveHangup,
+    setIceServers: setIceServers
   };
 
   return p;

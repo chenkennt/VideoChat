@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -15,6 +16,19 @@ namespace Microsoft.Azure.SignalR.VideoChat
     public class AuthController : Controller
     {
         public const string AvatarUrlClaim = "urn:github:avatar_url";
+
+        private readonly string TurnServerUrl;
+
+        private readonly string TurnServerUser;
+
+        private readonly string TurnServerCredential;
+
+        public AuthController(IConfiguration config)
+        {
+            TurnServerUrl = config["TurnServerUrl"];
+            TurnServerUser = config["TurnServerUser"];
+            TurnServerCredential = config["TurnServerCredential"];
+        }
 
         [HttpGet("signin")]
         public IActionResult Login(string redirectUrl)
@@ -56,11 +70,15 @@ namespace Microsoft.Azure.SignalR.VideoChat
         }
 
         [Authorize]
-        [HttpGet("/")]
-        public IActionResult Homepage()
+        [HttpGet("turn")]
+        public IActionResult GetTurnServer()
         {
-            var file = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "index.html");
-            return PhysicalFile(file, "text/html");
+            return Ok(new
+            {
+                Urls = TurnServerUrl,
+                Username = TurnServerUser,
+                Credential = TurnServerCredential
+            });
         }
     }
 }

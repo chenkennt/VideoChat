@@ -145,9 +145,8 @@
                 </button>
               </div>
             </div>
-            <video id="remote-view" :class="{ 'd-none': callStatus !== 'connected', 'video-fit': videoFit }"></video>
-            <video id="self-view" :class="{ 'd-none': callStatus !== 'connected' && callStatus !== 'calling', 'video-fit': videoFit }"
-              muted></video>
+            <video id="remote-view" :class="{ 'd-none': callStatus !== 'connected', 'video-fit': videoFit }" autoplay playsinline></video>
+            <video id="self-view" :class="{ 'd-none': callStatus !== 'connected' && callStatus !== 'calling', 'video-fit': videoFit }" muted autoplay playsinline></video>
           </div>
           <footer v-if="current">
             <nav class="navbar navbar-expand-lg navbar-light bg-light border-top">
@@ -197,12 +196,10 @@
     function setSelfView(stream) {
       var selfView = document.querySelector('#self-view');
       selfView.srcObject = stream;
-      selfView.play();
     }
     function setRemoteView(stream) {
       var remoteView = document.querySelector('#remote-view');
       remoteView.srcObject = stream;
-      remoteView.play();
     }
 
     var peer = Peer();
@@ -378,6 +375,10 @@
     connection.on('userList', app.setUsers);
     connection.on('newMessage', app.addIncomingMessage);
     connection.start();
+
+    axios
+      .get('/turn')
+      .then(t => peer.setIceServers([t.data]));
 
     $("#menu-toggle").click(function (e) {
       e.preventDefault();

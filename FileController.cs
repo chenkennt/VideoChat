@@ -11,7 +11,9 @@ namespace Microsoft.Azure.SignalR.VideoChat
         [HttpGet("/{*path}")]
         public IActionResult GetFile(string path)
         {
+            if (string.IsNullOrEmpty(path)) path = "index.html";
             var file = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", path);
+            if (!System.IO.File.Exists(file)) return NotFound();
             var provider = new FileExtensionContentTypeProvider();
             if (!provider.TryGetContentType(path, out string contentType))
             {

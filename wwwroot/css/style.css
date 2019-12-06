@@ -306,3 +306,9 @@ picture {
 .video-fit {
   object-fit: cover;
 }
+
+#self-view {
+    transform: rotateY(180deg);
+    -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+    -moz-transform:rotateY(180deg); /* Firefox */
+}
